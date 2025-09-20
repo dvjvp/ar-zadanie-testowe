@@ -17,6 +17,9 @@ protected:
 
 	virtual void BeginDestroy() override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnPlayerStateChanged(bool IsAlive);
+
 	UFUNCTION()
 	void OnControlledPawnChanged(class APawn* PrevPawn, class APawn* NewPawn);
 	UFUNCTION()
@@ -24,8 +27,13 @@ protected:
 	UFUNCTION()
 	void OnInventoryModified(UInventoryComponent* Inventory, TSubclassOf<UInventoryItemDefinition> Item, int32 PrevCount, int32 NewCount);
 
+	UFUNCTION()
+	void OnHealthChanged(class UHealthComponent* Health, float PreviousValue, float NewValue);
+
 	void UpdateCurrentWeapon(TSubclassOf<UInventoryWeaponDefinition> NewWeapon);
 	void UpdateCurrentAmmo();
+
+	int32 GetDefaultHealth(class UHealthComponent* Health) const;
 
 public:
 	
@@ -37,6 +45,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UTexture2D* NoWeaponTexture = nullptr;
+
+	UPROPERTY(meta=(BindWidget))
+	class UTextBlock* HealthTextBlock = nullptr;
 
 	UPROPERTY()
 	TSubclassOf<UInventoryWeaponDefinition> CurrentWeapon;

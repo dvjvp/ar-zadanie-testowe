@@ -9,6 +9,7 @@
 #include "Inventory/InventoryComponent.h"
 #include "Inventory/EquipmentComponent.h"
 #include "Core/Abilities/ShootingAbility.h"
+#include "Core/Player/HealthComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -42,6 +43,7 @@ ASurvivalCharacter::ASurvivalCharacter()
 	Inventory = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory"));
 	Equipment = CreateDefaultSubobject<UEquipmentComponent>(TEXT("Equipment"));
 	Equipment->SetIsReplicated(true);
+	Health = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
 }
 
 void ASurvivalCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

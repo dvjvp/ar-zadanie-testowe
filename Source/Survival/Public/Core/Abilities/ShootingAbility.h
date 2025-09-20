@@ -33,7 +33,7 @@ public:
 
 protected:
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Rpc_RequestWeaponFire(FVector ActorLocation, FVector ShotOrigin, FVector ShotDirection);
 
 	UFUNCTION(NetMulticast, Unreliable)

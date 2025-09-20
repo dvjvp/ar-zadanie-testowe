@@ -116,10 +116,10 @@ void UEquipmentComponent::ChangeWeaponLocally(TSubclassOf<UInventoryWeaponDefini
 	// trigger an additional time on the ability components, as one component will be created
 	// and then almost immediately destroyed right after.
 	// Again, shouldn't be an issue, but we don't need to do that at all, so why waste resources
-	if (CurrentWeapon == NewWeapon)
-	{
-		return;
-	}
+// 	if (CurrentWeapon == NewWeapon)
+// 	{
+// 		return;
+// 	}
 
 	CurrentWeapon = NewWeapon;
 	OnCurrentWeaponChanged.Broadcast(this, CurrentWeapon);

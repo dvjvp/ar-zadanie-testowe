@@ -33,7 +33,7 @@ public:
 	TArray<TSubclassOf<class UPlayerAbility>> GrantedAbilities;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	float MaxShootingDistance = 1000.0f;
+	float MaxShootingDistance = 10000.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float Damage = 20.0f;
@@ -41,4 +41,7 @@ public:
 	// Number of bullets to add when this weapon is picked up
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	int32 InitialAmmo = 5;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 AmmoGivenOnPickup = 5;
 };

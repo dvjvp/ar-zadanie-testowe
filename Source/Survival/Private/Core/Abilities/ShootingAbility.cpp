@@ -4,6 +4,7 @@
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
+#include "Core/Player/HealthComponent.h"
 
 
 void UShootingAbility::GetAimingLocation(FVector& ScreenCenterWorldPos, FVector& CameraForwardVector)
@@ -57,33 +58,29 @@ int32 UShootingAbility::UseAmmo(int32 NumToUse)
 
 void UShootingAbility::FireWeapon(FVector MuzzleLocation, FVector AimingOrigin, FVector AimingDirection)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("[Client] FireWeapon (Client: %s)"), *GetOwner()->GetName()));
-	
 	Rpc_RequestWeaponFire(GetOwner()->GetActorLocation(), AimingOrigin, AimingDirection);
 }
 
-void UShootingAbility::Rpc_RequestWeaponFire_Implementation(FVector ClientActorLocation, FVector ShotOrigin, FVector ShotDirection)
+bool UShootingAbility::Rpc_RequestWeaponFire_Validate(FVector ClientActorLocation, FVector ShotOrigin, FVector ShotDirection)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("[Server] RequestWeaponFire"));
-
 	// If data sent from the client is within this margin of what we got simulated
 	// on the server, we treat it as valid
 	const float DistanceTreshold = FMath::Square(100.0f);
 
 	if (GetAmmoCount() < 0)
 	{
-		return;
+		return false;
 	}
 
 	const FVector ServerActorLocation = GetOwner()->GetActorLocation();
 	if (FVector::DistSquared(ServerActorLocation, ClientActorLocation) > DistanceTreshold)
 	{
-		return;
+		return false;
 	}
 
 	if (FVector::DistSquared(ServerActorLocation, ShotOrigin) > DistanceTreshold)
 	{
-		return;
+		return false;
 	}
 
 	// There should be more checks, i.e. for if the delay between consecutive shots requested by client is lower
@@ -92,21 +89,35 @@ void UShootingAbility::Rpc_RequestWeaponFire_Implementation(FVector ClientActorL
 	UInventoryWeaponDefinition* Weapon = GetOwningWeapon();
 	if (!Weapon)
 	{
-		return;
+		return false;
 	}
+
+	return true;
+}
+
+void UShootingAbility::Rpc_RequestWeaponFire_Implementation(FVector ClientActorLocation, FVector ShotOrigin, FVector ShotDirection)
+{
+	UInventoryWeaponDefinition* Weapon = GetOwningWeapon();
+	check(Weapon); // Should always be valid, because it's checked in _Validate()
 
 	// Data seems to be valid, let's perform the shot
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(GetOwner());
+
 	FHitResult HitResult;
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, 
 		ShotOrigin, ShotOrigin + (ShotDirection * Weapon->MaxShootingDistance),
 		ECollisionChannel::ECC_GameTraceChannel1, Params))
 	{
-// 		if (HitResult.GetActor() && HitResult.GetActor()->CanBeDamaged())
-// 		{
-// 			HitResult.GetActor()->TakeDamage(Weapon->Damage, )
-// 		}
+		if (HitResult.GetActor())
+		{
+			if (UHealthComponent* Health = HitResult.GetActor()->GetComponentByClass<UHealthComponent>())
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("[ShootingAbility::RequestFire] Apply Damage!"));
+
+				Health->DealDamage(Weapon->Damage);
+			}
+		}
 	}
 
 	Rpc_ShowEffectsOnWeaponFired(HitResult.ImpactPoint, HitResult.GetActor());

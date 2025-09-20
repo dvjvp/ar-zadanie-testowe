@@ -74,5 +74,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UEquipmentComponent* Equipment = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UHealthComponent* Health = nullptr;
 };
 
