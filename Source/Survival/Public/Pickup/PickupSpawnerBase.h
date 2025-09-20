@@ -73,5 +73,5 @@ public:
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Replication")
 	float Rep_CurrentTotalCooldownTime = -1.0f;
 
-	FTimerHandle TimerUntilNextSpawn;	
+	FTimerHandle TimerUntilNextSpawn;
 };

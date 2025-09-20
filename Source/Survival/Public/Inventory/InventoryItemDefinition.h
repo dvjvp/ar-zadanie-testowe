@@ -10,7 +10,7 @@ class SURVIVAL_API UInventoryItemDefinition : public UObject
 	GENERATED_BODY()
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Inventory")
 	int32 MaxNumInInventory = 1;
 };
 
@@ -20,13 +20,13 @@ class SURVIVAL_API UInventoryWeaponDefinition : public UInventoryItemDefinition
 	GENERATED_BODY()
 public:
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
 	class USkeletalMesh* WeaponMesh = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ammo")
 	TSubclassOf<UInventoryItemDefinition> AmmoType;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Visual")
 	class UTexture2D* UiIcon = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
@@ -39,9 +39,9 @@ public:
 	float Damage = 20.0f;
 
 	// Number of bullets to add when this weapon is picked up
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ammo")
 	int32 InitialAmmo = 5;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Ammo")
 	int32 AmmoGivenOnPickup = 5;
 };

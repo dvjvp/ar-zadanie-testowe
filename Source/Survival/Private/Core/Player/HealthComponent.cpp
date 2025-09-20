@@ -11,10 +11,7 @@ UHealthComponent::UHealthComponent()
 
 void UHealthComponent::DealDamage(float Damage)
 {
-	// Update health immediately on a client.
-	// Server will send the correct data once it updates it itself
-	// In case it disagrees with our version of damage being dealt, we'll take
-	// the data from server
+	checkf(UKismetSystemLibrary::IsServer(this), TEXT("This function should only be called from a server"));
 
 	const float PrevHealth = HealthPoints;
 	HealthPoints = FMath::Max(0.0f, HealthPoints - Damage);
