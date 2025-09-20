@@ -1,4 +1,5 @@
 #include "Core/Abilities/PlayerAbility.h"
+#include "GameFramework/PlayerController.h"
 
 void UPlayerAbility::TryToActivate()
 {
@@ -86,6 +87,17 @@ void UPlayerAbility::Rpc_AbilityCanceled_Implementation()
 	{
 		OnCanceled(EAbilityCancelReason::CanceledByGameCode);
 	}
+}
+
+APlayerController* UPlayerAbility::GetOwnersPlayerController() const
+{
+	APawn* OwnerAsPawn = Cast<APawn>(GetOwner());
+	if (OwnerAsPawn)
+	{
+		AController* Controller = OwnerAsPawn->GetController();
+		return Cast<APlayerController>(Controller);
+	}
+	return nullptr;
 }
 
 bool UPlayerAbility::IsSupportedForNetworking() const

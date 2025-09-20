@@ -12,6 +12,9 @@ class SURVIVAL_API UShootingAbility : public UPlayerAbility
 
 public:
 
+	UFUNCTION(BlueprintCallable)
+	void GetAimingLocation(FVector& ScreenCenterWorldPos, FVector& CameraForwardVector);
+
 	UFUNCTION(BlueprintImplementableEvent, BlueprintPure)
 	FVector GetMuzzleLocation() const;
 
@@ -26,7 +29,7 @@ public:
 	int32 UseAmmo(int32 NumToUse = 1);
 
 	UFUNCTION(BlueprintCallable)
-	void FireWeapon(FVector ShotOrigin, FVector ShotDirection);
+	void FireWeapon(FVector MuzzleLocation, FVector AimingOrigin, FVector AimingDirection);
 
 protected:
 

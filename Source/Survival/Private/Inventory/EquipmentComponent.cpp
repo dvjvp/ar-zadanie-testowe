@@ -3,6 +3,7 @@
 #include "Inventory/InventoryItemDefinition.h"
 #include "Net/UnrealNetwork.h"
 #include "Core/Abilities/PlayerAbility.h"
+#include "Core/Player/SurvivalCharacter.h"
 
 void UEquipmentComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -109,12 +110,45 @@ void UEquipmentComponent::Rpc_ChangeWeaponRemote_Implementation(TSubclassOf<UInv
 
 void UEquipmentComponent::ChangeWeaponLocally(TSubclassOf<UInventoryWeaponDefinition> NewWeapon)
 {
+	// When one of the clients is also a host, they will get ChangeWeaponLocally() message twice,
+	// first from local simulation and second from the server rpc a client sends to the server.
+	// The additional call won't actually do much harm, but it will make BeginPlay and EndPlay
+	// trigger an additional time on the ability components, as one component will be created
+	// and then almost immediately destroyed right after.
+	// Again, shouldn't be an issue, but we don't need to do that at all, so why waste resources
+	if (CurrentWeapon == NewWeapon)
+	{
+		return;
+	}
+
 	CurrentWeapon = NewWeapon;
 	OnCurrentWeaponChanged.Broadcast(this, CurrentWeapon);
 
 	// Remove all previously granted abilities
 	for (int32 i = WeaponGrantedAbilities.Num() - 1; i >= 0; i--)
 	{
+		// There is currently a bug in Unreal Engine's Enhanced Input system.
+		// The bug is that when a component is unregistered, its bound inputs are not being unregistered.
+		// Usually that's not a huge issue (except for a small memory leak and slowing down input processing as the game goes on),
+		// because if we're creating and deleting components dynamically
+		// the UObjectPtr won't match the new one and the leaked binding will point to something invalid
+		// and unreal's pointers will treat as nullptr instead and not execute the binding.
+		// 
+		// But since for networking I made the components have consistent names, even after being deleted
+		// and recreated, the UObjectPtrs from old bindings are now pointing to the newly created object
+		// that has the same set of IDs, which causes the bindings to compound every time we switch a weapon.
+		//
+		// While an engine modification with a pull request to Epic would be the best way to solve this issue,
+		// as it would remove the memory leak whenever a component that uses inputs gets created and deleted,
+		// I don't want to modify engine for this recruitment task, so instead I'll just handle this locally
+		// just for this equipment component by unregistering inputs manually
+		APawn* OwnerAsPawn = Cast<APawn>(GetOwner());
+		if (UInputComponent* InputComponent = OwnerAsPawn ? OwnerAsPawn->InputComponent : nullptr)
+		{
+			InputComponent->ClearBindingsForObject(WeaponGrantedAbilities[i]);
+		}
+
+		WeaponGrantedAbilities[i]->UnregisterComponent();
 		WeaponGrantedAbilities[i]->DestroyComponent();
 		WeaponGrantedAbilities.RemoveAt(i);
 	}

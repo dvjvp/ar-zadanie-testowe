@@ -3,7 +3,24 @@
 #include "Inventory/InventoryComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
 
+
+void UShootingAbility::GetAimingLocation(FVector& ScreenCenterWorldPos, FVector& CameraForwardVector)
+{
+	if (APlayerController* PlayerController = GetOwnersPlayerController())
+	{
+		if (PlayerController->PlayerCameraManager)
+		{
+			ScreenCenterWorldPos = PlayerController->PlayerCameraManager->GetCameraLocation();
+			CameraForwardVector = PlayerController->PlayerCameraManager->GetCameraRotation().Vector();
+			return;
+		}
+	}
+
+	// Something has gone wrong. This function should only be called on the client's local actor that they're in control of
+	checkf(false, TEXT(__FUNCTION__) TEXT(" function called with a missing PlayerController or PlayerCameraManager"));
+}
 
 UInventoryWeaponDefinition* UShootingAbility::GetOwningWeapon() const
 {
@@ -38,11 +55,11 @@ int32 UShootingAbility::UseAmmo(int32 NumToUse)
 	return 0;
 }
 
-void UShootingAbility::FireWeapon(FVector ShotOrigin, FVector ShotDirection)
+void UShootingAbility::FireWeapon(FVector MuzzleLocation, FVector AimingOrigin, FVector AimingDirection)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, FString::Printf(TEXT("[Client] FireWeapon (Client: %s)"), *GetOwner()->GetName()));
 	
-	Rpc_RequestWeaponFire(GetOwner()->GetActorLocation(), ShotOrigin, ShotDirection);
+	Rpc_RequestWeaponFire(GetOwner()->GetActorLocation(), AimingOrigin, AimingDirection);
 }
 
 void UShootingAbility::Rpc_RequestWeaponFire_Implementation(FVector ClientActorLocation, FVector ShotOrigin, FVector ShotDirection)
@@ -90,9 +107,9 @@ void UShootingAbility::Rpc_RequestWeaponFire_Implementation(FVector ClientActorL
 // 		{
 // 			HitResult.GetActor()->TakeDamage(Weapon->Damage, )
 // 		}
-
-		Rpc_ShowEffectsOnWeaponFired(HitResult.ImpactPoint, HitResult.GetActor());
 	}
+
+	Rpc_ShowEffectsOnWeaponFired(HitResult.ImpactPoint, HitResult.GetActor());
 
 	if (!IsLocalCopy()) // Local copy already uses ammo on its own - this needs to be changed!
 	{

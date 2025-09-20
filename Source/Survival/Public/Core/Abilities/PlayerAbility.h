@@ -39,6 +39,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintPure)
 	bool CanBeCanceled();
 
+	// Returns true if this ability exists on a pawn that is controlled by the local client machine
 	UFUNCTION(BlueprintPure)
 	bool IsLocalCopy();
 
@@ -64,6 +65,11 @@ protected:
 	// Sent from server to all clients to confirm that the ability has been canceled
 	UFUNCTION(NetMulticast, Reliable)
 	void Rpc_AbilityCanceled();
+
+protected:
+
+	UFUNCTION(BlueprintPure)
+	class APlayerController* GetOwnersPlayerController() const;
 
 public:
 	UPROPERTY(BlueprintReadOnly)
